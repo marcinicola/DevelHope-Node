@@ -1,28 +1,17 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import "express-async-errors";
 import Joi from "joi";
+import {
+  getAll,
+  getOneById,
+  create,
+  updateById,
+  deleteById,
+} from "./controllers/planets";
+import "express-async-errors";
 
 dotenv.config();
-
-type Planet = {
-  id: number;
-  name: string;
-};
-
-type Planets = Planet[];
-
-let planets: Planets = [
-  {
-    id: 1,
-    name: "Earth",
-  },
-  {
-    id: 2,
-    name: "Mars",
-  },
-];
 
 const app = express();
 
@@ -46,40 +35,15 @@ const validatePlanet = (
   next();
 };
 
-app.get("/api/planets", (req, res) => {
-  res.json(planets);
-});
+app.get("/api/planets", getAll);
 
-app.get("/api/planets/:id", (req, res) => {
-  const planetId = parseInt(req.params.id, 10);
-  const planet = planets.find((p) => p.id === planetId);
-  if (!planet) {
-    return res.status(404).json({ error: "Planet not found" });
-  }
-  res.json(planet);
-});
+app.get("/api/planets/:id", getOneById);
 
-app.post("/api/planets", validatePlanet, (req, res) => {
-  const newPlanet: Planet = req.body;
-  planets.push(newPlanet);
-  res.status(201).json({ msg: "Planet created successfully" });
-});
+app.post("/api/planets", validatePlanet, create);
 
-app.put("/api/planets/:id", validatePlanet, (req, res) => {
-  const planetId = parseInt(req.params.id, 10);
-  const planetIndex = planets.findIndex((p) => p.id === planetId);
-  if (planetIndex === -1) {
-    return res.status(404).json({ error: "Planet not found" });
-  }
-  planets[planetIndex] = req.body;
-  res.json({ msg: "Planet updated successfully" });
-});
+app.put("/api/planets/:id", validatePlanet, updateById);
 
-app.delete("/api/planets/:id", (req, res) => {
-  const planetId = req.params.id;
-  planets = planets.filter((planet) => String(planet.id) !== planetId);
-  res.json({ msg: "Planet deleted successfully" });
-});
+app.delete("/api/planets/:id", deleteById);
 
 app.use(
   (
