@@ -1,54 +1,52 @@
 import { Request, Response } from "express";
+import pgPromise from "pg-promise";
 
-type Planet = {
-  id: number;
-  name: string;
+const db = pgPromise()("postgres://postgres:postgres@localhost:5432/planets");
+
+const setupDb = async () => {
+  await db.none(`
+    DROP TABLE IF EXISTS planets;
+
+    CREATE TABLE planets (
+      id SERIAL NOT NULL PRIMARY KEY,
+      name TEXT NOT NULL
+    );
+  `);
+
+  await db.none(`INSERT INTO planets (name) VALUES ('Earth')`);
+  await db.none(`INSERT INTO planets (name) VALUES ('Mars')`);
+
+  const planets = await db.many(`SELECT * FROM planets;`);
 };
+setupDb();
 
-type Planets = Planet[];
-
-let planets: Planets = [
-  {
-    id: 1,
-    name: "Earth",
-  },
-  {
-    id: 2,
-    name: "Mars",
-  },
-];
-const getAll = (req: Request, res: Response) => {
+const getAll = async (req: Request, res: Response) => {
+  const planets = await db.many(`SELECT * FROM planets;`);
   res.json(planets);
 };
 
-const getOneById = (req: Request, res: Response) => {
+const getOneById = async (req: Request, res: Response) => {
   const planetId = parseInt(req.params.id, 10);
-  const planet = planets.find((p) => p.id === planetId);
-  if (!planet) {
-    return res.status(404).json({ error: "Planet not found" });
-  }
+  const planet = await db.oneOrNone(`SELECT * FROM planets WHERE id=$1`, planetId);
   res.json(planet);
 };
 
 const create = (req: Request, res: Response) => {
-  const newPlanet: Planet = req.body;
-  planets.push(newPlanet);
+  const newPlanet = req.body;
+  //planets.push(newPlanet);
   res.status(201).json({ msg: "Planet created successfully" });
 };
 
 const updateById = (req: Request, res: Response) => {
   const planetId = parseInt(req.params.id, 10);
-  const planetIndex = planets.findIndex((p) => p.id === planetId);
-  if (planetIndex === -1) {
-    return res.status(404).json({ error: "Planet not found" });
-  }
-  planets[planetIndex] = req.body;
+  //const planetIndex = planets.findIndex((p) => p.id === planetId);
+  //planets[planetIndex] = req.body;
   res.json({ msg: "Planet updated successfully" });
 };
 
 const deleteById = (req: Request, res: Response) => {
   const planetId = req.params.id;
-  planets = planets.filter((planet) => String(planet.id) !== planetId);
+  //planets = planets.filter((planet) => String(planet.id) !== planetId);
   res.json({ msg: "Planet deleted successfully" });
 };
 
