@@ -19,7 +19,6 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 const planetSchema = Joi.object({
-  id: Joi.number().required(),
   name: Joi.string().required(),
 });
 
