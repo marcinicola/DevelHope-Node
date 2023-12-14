@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import multer from "multer";
 import Joi from "joi";
 import {
   getAll,
@@ -8,6 +9,7 @@ import {
   create,
   updateById,
   deleteById,
+  createImage,
 } from "./controllers/planets";
 import "express-async-errors";
 
@@ -21,6 +23,17 @@ app.use(morgan("dev"));
 const planetSchema = Joi.object({
   name: Joi.string().required(),
 });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
 
 const validatePlanet = (
   req: express.Request,
@@ -44,17 +57,10 @@ app.put("/api/planets/:id", validatePlanet, updateById);
 
 app.delete("/api/planets/:id", deleteById);
 
-app.use(
-  (
-    err: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).send("Something went wrong!");
-  }
-);
+app.post("/api/planets/:id/image", upload.single("image"), createImage);
+
+app.use("/uploads", express.static("uploads"));
+app.use("/static", express.static("static"));
 
 const PORT = process.env.PORT || 3000;
 

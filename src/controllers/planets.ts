@@ -9,7 +9,8 @@ const setupDb = async () => {
 
     CREATE TABLE planets (
       id SERIAL NOT NULL PRIMARY KEY,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      image TEXT
     );
   `);
 
@@ -27,27 +28,41 @@ const getAll = async (req: Request, res: Response) => {
 
 const getOneById = async (req: Request, res: Response) => {
   const planetId = parseInt(req.params.id, 10);
-  const planet = await db.oneOrNone(`SELECT * FROM planets WHERE id=$1`, planetId);
+  const planet = await db.oneOrNone(
+    `SELECT * FROM planets WHERE id=$1`,
+    planetId
+  );
   res.json(planet);
 };
 
 const create = async (req: Request, res: Response) => {
-  const {name} = req.body;
-  await db.none(`INSERT INTO planets (name) VALUES ($1)`,name)
+  const { name } = req.body;
+  await db.none(`INSERT INTO planets (name) VALUES ($1)`, name);
   res.status(201).json({ msg: "Planet created successfully" });
 };
 
 const updateById = async (req: Request, res: Response) => {
-const {id} = req.params
-const {name} = req.body
-await db.none(`UPDATE planets SET name=$2 WHERE id=$1`,[id,name])
+  const { id } = req.params;
+  const { name } = req.body;
+  await db.none(`UPDATE planets SET name=$2 WHERE id=$1`, [id, name]);
   res.json({ msg: "Planet updated successfully" });
 };
 
 const deleteById = async (req: Request, res: Response) => {
   const planetId = req.params.id;
-  await db.none(`DELETE FROM planets WHERE id=$1`, Number(planetId))
+  await db.none(`DELETE FROM planets WHERE id=$1`, Number(planetId));
   res.json({ msg: "Planet deleted successfully" });
 };
 
-export { getAll, getOneById, create, updateById, deleteById };
+const createImage = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const fileName = req.file?.path;
+  if (fileName) {
+    db.none(`UPDATE planets SET image=$2 WHERE id=$1`, [id, fileName]);
+    res.status(201).json({ msg: "Planet Image Successfully" });
+  } else {
+    res.status(400).json({ msg: "Planet Image not upload" });
+  }
+};
+
+export { getAll, getOneById, create, updateById, deleteById, createImage };
