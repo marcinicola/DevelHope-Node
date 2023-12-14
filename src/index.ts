@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import multer from "multer";
+import "./passport"
 import Joi from "joi";
 import {
   getAll,
@@ -12,7 +13,8 @@ import {
   createImage,
 } from "./controllers/planets";
 import "express-async-errors";
-import { logIn, signUp } from "./controllers/users";
+import { logIn, signUp, logOut } from "./controllers/users";
+import authorize from "./authorize";
 
 dotenv.config();
 
@@ -65,6 +67,7 @@ app.use("/static", express.static("static"));
 
 app.post("/api/users/login", logIn);
 app.post("/api/users/signup", signUp);
+app.get("/api/users/logout", authorize, logOut);
 
 const PORT = process.env.PORT || 3000;
 
