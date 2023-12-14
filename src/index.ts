@@ -12,6 +12,7 @@ import {
   createImage,
 } from "./controllers/planets";
 import "express-async-errors";
+import { logIn } from "./controllers/users";
 
 dotenv.config();
 
@@ -61,6 +62,8 @@ app.post("/api/planets/:id/image", upload.single("image"), createImage);
 
 app.use("/uploads", express.static("uploads"));
 app.use("/static", express.static("static"));
+
+app.post("/api/users/login", logIn);
 
 const PORT = process.env.PORT || 3000;
 
